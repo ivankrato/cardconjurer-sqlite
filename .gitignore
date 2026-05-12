@@ -5,7 +5,7 @@ CORS.json
 dev/*
 
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
@@ -34,3 +34,5 @@ access.log
 error.log
 
 fly.toml
+
+cards.db

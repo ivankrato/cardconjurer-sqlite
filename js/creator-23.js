@@ -83,7 +83,7 @@ window.ImageLoadTracker = {
             // The app's own error handlers will manage displaying a blank image.
             img.onerror = () => {
                 console.warn(`Could not load tracked image: ${src}`);
-                resolve(null); 
+                resolve(null);
             };
             img.src = src;
         });
@@ -1958,7 +1958,7 @@ function writeText(textObject, targetContext) {
 					var possibleCode = possibleCode.replaceAll('/', '');
 					var manaSymbol;
 					// Add symbol to render queue without drawing immediately
-					if (textObject.manaPrefix && 
+					if (textObject.manaPrefix &&
 						(getManaSymbol(textObject.manaPrefix + possibleCode) != undefined || getManaSymbol(textObject.manaPrefix + possibleCode.split('').reverse().join('')) != undefined)) {
 						manaSymbol = getManaSymbol(textObject.manaPrefix + possibleCode) || getManaSymbol(textObject.manaPrefix + possibleCode.split('').reverse().join(''));
 					} else {
@@ -1966,7 +1966,7 @@ function writeText(textObject, targetContext) {
 							possibleCode = 'whitebrush';
 						}
 						manaSymbol = getManaSymbol(possibleCode) || getManaSymbol(possibleCode.split('').reverse().join(''));
-					} 
+					}
 
 					var origManaSymbolColor = manaSymbolColor;
 					if (manaSymbol.matchColor && !manaSymbolColor && textColor !== 'black') {
@@ -2017,7 +2017,7 @@ function writeText(textObject, targetContext) {
 					manaSymbolsToRender.push({
 						symbol: manaSymbol,
 						x: manaSymbolX,
-						y: manaSymbolY, 
+						y: manaSymbolY,
 						width: manaSymbolWidth,
 						height: manaSymbolHeight,
 						hasOutline: textOutlineWidth > 0,
@@ -2048,13 +2048,13 @@ function writeText(textObject, targetContext) {
 
 				// Check if any symbols actually need outlines
 				var hasAnyOutlines = manaSymbolsToRender.some(symbolData => symbolData.hasOutline);
-				
+
 				if (!hasAnyOutlines) {
 					// Simple path: no outlines needed, just draw symbols normally
 					manaSymbolsToRender.forEach(symbolData => {
 						var imageToUse = symbolData.symbol.image;
 						var backImageToUse = symbolData.backImage;
-						
+
 						// For Safari, create a combined canvas first, then apply shadow
 						if (isSafari && (symbolData.symbol.image.src?.includes('.svg') || (backImageToUse?.src?.includes('.svg')))) {
 							// Create a combined canvas for both symbols
@@ -2062,27 +2062,27 @@ function writeText(textObject, targetContext) {
 							combinedCanvas.width = symbolData.width;
 							combinedCanvas.height = symbolData.height;
 							var combinedContext = combinedCanvas.getContext('2d');
-							
+
 							// Draw back image first (if exists)
 							if (symbolData.symbol.backs && backImageToUse) {
 								combinedContext.drawImage(backImageToUse, 0, 0, symbolData.width, symbolData.height);
 							}
-							
+
 							// Draw main symbol on top
 							combinedContext.drawImage(symbolData.symbol.image, 0, 0, symbolData.width, symbolData.height);
-							
+
 							// Now use the combined canvas as the image source
 							imageToUse = combinedCanvas;
 							backImageToUse = null; // Don't draw back separately since it's already combined
 						}
-						
+
 						if (symbolData.radius > 0) {
 							if (symbolData.symbol.backs && backImageToUse) {
-								lineContext.drawImageArc(backImageToUse, symbolData.x, symbolData.y, 
-									symbolData.width, symbolData.height, symbolData.radius, 
+								lineContext.drawImageArc(backImageToUse, symbolData.x, symbolData.y,
+									symbolData.width, symbolData.height, symbolData.radius,
 									symbolData.arcStart, symbolData.currentX);
 							}
-							lineContext.drawImageArc(imageToUse, symbolData.x, symbolData.y, 
+							lineContext.drawImageArc(imageToUse, symbolData.x, symbolData.y,
 								symbolData.width, symbolData.height, symbolData.radius,
 								symbolData.arcStart, symbolData.currentX);
 						} else if (symbolData.color) {
@@ -2097,14 +2097,14 @@ function writeText(textObject, targetContext) {
 								symbolData.width, symbolData.height);
 						}
 					});
-					
+
 					manaSymbolsToRender = [];
 					return; // This exits the function completely - no complex rendering
 				}
 
 				// Complex path: outlines needed, do multi-pass rendering
 				// This code should ONLY run when hasAnyOutlines is true
-				var outlineCanvas = lineCanvas.cloneNode(); 
+				var outlineCanvas = lineCanvas.cloneNode();
 				var outlineContext = outlineCanvas.getContext('2d');
 				var symbolCanvas = lineCanvas.cloneNode();
 				var symbolContext = symbolCanvas.getContext('2d');
@@ -2119,7 +2119,7 @@ function writeText(textObject, targetContext) {
 				tempContext.drawImage(lineCanvas, 0, 0);
 				// Clear the line context
 				lineContext.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
-				
+
 				// First pass: Draw outlines only
 				manaSymbolsToRender.forEach(symbolData => {
 					if (!symbolData.hasOutline) return;
@@ -2135,15 +2135,15 @@ function writeText(textObject, targetContext) {
 				});
 				// Transfer outlines to main canvas
 				lineContext.drawImage(outlineCanvas, 0, 0);
-				
+
 				// Restore text content on top of outlines
 				lineContext.drawImage(tempCanvas, 0, 0);
-				
+
 				// Second pass: Draw mana symbols
 				manaSymbolsToRender.forEach(symbolData => {
 					var imageToUse = symbolData.symbol.image;
 					var backImageToUse = symbolData.backImage;
-					
+
 					// For Safari, create a combined canvas first, then apply shadow
 					if (isSafari && (symbolData.symbol.image.src?.includes('.svg') || (backImageToUse?.src?.includes('.svg')))) {
 						// Create a combined canvas for both symbols
@@ -2151,27 +2151,27 @@ function writeText(textObject, targetContext) {
 						combinedCanvas.width = symbolData.width;
 						combinedCanvas.height = symbolData.height;
 						var combinedContext = combinedCanvas.getContext('2d');
-						
+
 						// Draw back image first (if exists)
 						if (symbolData.symbol.backs && backImageToUse) {
 							combinedContext.drawImage(backImageToUse, 0, 0, symbolData.width, symbolData.height);
 						}
-						
+
 						// Draw main symbol on top
 						combinedContext.drawImage(symbolData.symbol.image, 0, 0, symbolData.width, symbolData.height);
-						
+
 						// Now use the combined canvas as the image source
 						imageToUse = combinedCanvas;
 						backImageToUse = null; // Don't draw back separately since it's already combined
 					}
-					
+
 					if (symbolData.radius > 0) {
 						if (symbolData.symbol.backs && backImageToUse) {
-							symbolContext.drawImageArc(backImageToUse, symbolData.x, symbolData.y, 
-								symbolData.width, symbolData.height, symbolData.radius, 
+							symbolContext.drawImageArc(backImageToUse, symbolData.x, symbolData.y,
+								symbolData.width, symbolData.height, symbolData.radius,
 								symbolData.arcStart, symbolData.currentX);
 						}
-						symbolContext.drawImageArc(imageToUse, symbolData.x, symbolData.y, 
+						symbolContext.drawImageArc(imageToUse, symbolData.x, symbolData.y,
 							symbolData.width, symbolData.height, symbolData.radius,
 							symbolData.arcStart, symbolData.currentX);
 					} else if (symbolData.color) {
@@ -2189,7 +2189,7 @@ function writeText(textObject, targetContext) {
 
 				// Draw symbols on top of text
 				lineContext.drawImage(symbolCanvas, 0, 0);
-				
+
 				manaSymbolsToRender = [];
 			}
 			if (wordToWrite && lineContext.font.endsWith('belerenb')) {
@@ -2491,12 +2491,12 @@ function uploadArt(imageSource, otherParams) {
 async function pasteArt() {
   try {
     const clipboardItems = await navigator.clipboard.read();
-    
+
     for (const item of clipboardItems) {
       for (const type of item.types) {
         if (type.startsWith('image/')) {
           const blob = await item.getType(type);
-          
+
           const url = URL.createObjectURL(blob);
 
           uploadArt(url, document.querySelector("#art-update-autofit").checked ? "autoFit" : "");
@@ -2971,9 +2971,9 @@ function setDefaultCollector() {
 }
 function drawSetSymbol(cardContext, setSymbol, bounds) {
     if (!bounds) return;
-    
+
     const symbolWidth = setSymbol.width * card.setSymbolZoom;
-    const symbolHeight = setSymbol.height * card.setSymbolZoom; 
+    const symbolHeight = setSymbol.height * card.setSymbolZoom;
     const x = scaleX(card.setSymbolX);
     const y = scaleY(card.setSymbolY);
 
@@ -2981,47 +2981,47 @@ function drawSetSymbol(cardContext, setSymbol, bounds) {
         // Create temp canvas for outlined symbol
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
-        
+
         // Scale the outline width the same way text outlines are scaled
         const outlineWidth = scaleHeight(bounds.outlineWidth);
         const margin = outlineWidth * 2;
         tempCanvas.width = symbolWidth + margin;
         tempCanvas.height = symbolHeight + margin;
-        
+
         // Setup stroke style (similar to text outline system)
         tempCtx.strokeStyle = bounds.outlineColor || 'black';
         tempCtx.lineWidth = outlineWidth;
         tempCtx.lineJoin = bounds.lineJoin || 'round';
         tempCtx.lineCap = bounds.lineCap || 'round';
-        
+
         // First pass: Draw outline by stroking the symbol multiple times in a circle pattern
         const outlineSteps = Math.max(8, Math.ceil(outlineWidth * 2));
         for (let i = 0; i < outlineSteps; i++) {
             const angle = (i / outlineSteps) * Math.PI * 2;
             const offsetX = Math.cos(angle) * (outlineWidth / 2);
             const offsetY = Math.sin(angle) * (outlineWidth / 2);
-            
+
             tempCtx.globalCompositeOperation = 'source-over';
-            tempCtx.drawImage(setSymbol, 
-                outlineWidth + offsetX, 
-                outlineWidth + offsetY, 
-                symbolWidth, 
+            tempCtx.drawImage(setSymbol,
+                outlineWidth + offsetX,
+                outlineWidth + offsetY,
+                symbolWidth,
                 symbolHeight);
-            
+
             // Apply the outline color
             tempCtx.globalCompositeOperation = 'source-in';
             tempCtx.fillStyle = bounds.outlineColor || 'black';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             tempCtx.globalCompositeOperation = 'destination-over';
         }
-        
+
         // Second pass: Draw the original symbol on top
         tempCtx.globalCompositeOperation = 'source-over';
         tempCtx.drawImage(setSymbol, outlineWidth, outlineWidth, symbolWidth, symbolHeight);
 
         // Draw to main canvas
-        cardContext.drawImage(tempCanvas, 
-            x - outlineWidth, 
+        cardContext.drawImage(tempCanvas,
+            x - outlineWidth,
             y - outlineWidth,
             tempCanvas.width,
             tempCanvas.height);
@@ -3079,7 +3079,7 @@ function drawCard() {
 	cardContext.drawImage(textCanvas, 0, 0, cardCanvas.width, cardCanvas.height);
 	// set symbol
 	if (card.setSymbolBounds) {
-		drawSetSymbol(cardContext, setSymbol, card.setSymbolBounds); 
+		drawSetSymbol(cardContext, setSymbol, card.setSymbolBounds);
 	}
 	// serial
 	if (card.serialNumber || card.serialTotal) {
@@ -3196,7 +3196,7 @@ async function bulkDownloadZip() {
         notify('Required library (JSZip) has not loaded yet. Please wait a moment and try again.', 5);
         return;
     }
-    const cardKeys = JSON.parse(localStorage.getItem('cardKeys'));
+    const cardKeys = await (await fetch('/api/cards')).json();
     if (!cardKeys || cardKeys.length === 0) {
         notify('No saved cards found to download.', 3);
         return;
@@ -3237,7 +3237,11 @@ async function bulkDownloadZip() {
         delete frame.image;
         frame.masks.forEach(mask => delete mask.image);
     });
-    localStorage.setItem(tempKey, JSON.stringify(cardToSave));
+    await fetch('/api/cards/' + encodeURIComponent(tempKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cardToSave)
+    });
 
     // 4. Loop through each saved card to render and add it to the zip object.
     for (const [index, key] of cardKeys.entries()) {
@@ -3248,17 +3252,17 @@ async function bulkDownloadZip() {
             FontLoadTracker.start();
             await loadCard(key);
             drawText();
-            
+
             const imagePromise = ImageLoadTracker.waitForAll();
             const fontPromise = FontLoadTracker.waitForAll();
             await Promise.all([imagePromise, fontPromise]);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
             drawCard();
-            
+
             const imageName = getCardName() + '.png';
             const imageData = cardCanvas.toDataURL('image/png').split(',')[1];
-            
+
             zip.file(imageName, imageData, { base64: true });
             console.log(`Zipped: ${imageName}`);
 
@@ -3280,7 +3284,7 @@ async function bulkDownloadZip() {
 
             await new Promise((resolve, reject) => {
                 const stream = zip.generateInternalStream({ type: 'uint8array', streamFiles: true });
-                
+
                 stream
                     .on('data', (chunk) => { writable.write(chunk).catch(reject); })
                     .on('end', () => { writable.close().then(resolve).catch(reject); })
@@ -3293,7 +3297,7 @@ async function bulkDownloadZip() {
             // Fallback Path: For browsers without streaming support.
             notify('Streaming not supported. Building ZIP in memory... This may be slow or fail.', 10);
             const content = await zip.generateAsync({ type: 'blob' });
-            
+
             const downloadElement = document.createElement('a');
             downloadElement.href = URL.createObjectURL(content);
             downloadElement.download = 'CardConjurer_Bulk.zip';
@@ -3305,10 +3309,10 @@ async function bulkDownloadZip() {
         console.error('Failed to generate or save ZIP file:', err);
         notify('An error occurred while saving the ZIP file.', 5);
     }
-    
+
     // 6. Restore the user's original card state.
     await loadCard(tempKey);
-    localStorage.removeItem(tempKey);
+    await fetch('/api/cards/' + encodeURIComponent(tempKey), { method: 'DELETE' });
     console.log('Bulk download process finished. User state restored.');
 }
 //IMPORT/SAVE TAB
@@ -3491,21 +3495,21 @@ function parseClassAbilities(text) {
 
 function parseMultiFacedCards(card) {
     let [frontFace, backFace] = card.card_faces ?? []
-    
+
     if (card.object === "card_face") {
         // Battle cards: find faces from scryfallCard array
         frontFace = card;
-        backFace = scryfallCard.find(face => 
-            face.object === "card_face" && 
+        backFace = scryfallCard.find(face =>
+            face.object === "card_face" &&
             face.name !== card.name
         );
     }
-    
+
     if (!frontFace || !backFace) {
         console.error('Could not find both faces for multi-faced card');
         return null;
     }
-    
+
     // Single processing logic for both types
     const faces = {
         front: {
@@ -3527,7 +3531,7 @@ function parseMultiFacedCards(card) {
             flavor: backFace.flavor_text || ''
         }
     };
-    
+
     return faces;
 }
 
@@ -3538,22 +3542,22 @@ function parseLevelerCard(card) {
     }
 
     const oracleText = card.oracle_text;
-    
+
     // Parse the oracle text sections
     const sections = oracleText.split('\n');
-    
+
     // Find level up cost (first line)
     const levelUpMatch = sections[0].match(/Level up (.+?) \((.+?)\)/);
     const levelUpCost = levelUpMatch ? levelUpMatch[1] : '';
     const levelUpReminder = levelUpMatch ? levelUpMatch[2] : '';
-    
+
     // Find level ranges and their content
     const levelSections = [];
     let currentSection = null;
-    
+
     for (let i = 1; i < sections.length; i++) {
         const line = sections[i];
-        
+
         // Check if this line defines a level range
         const levelMatch = line.match(/^LEVEL (.+)$/);
         if (levelMatch) {
@@ -3568,12 +3572,12 @@ function parseLevelerCard(card) {
             currentSection.content.push(line);
         }
     }
-    
+
     // Add the last section if it exists
     if (currentSection) {
         levelSections.push(currentSection);
     }
-    
+
     // Extract data for each level
     const parsedData = {
         layout: 'leveler', // Add this line for consistency
@@ -3585,7 +3589,7 @@ function parseLevelerCard(card) {
         levelUpText: `Level up ${levelUpCost} {i}(${levelUpReminder}){/i}`,
         levels: []
     };
-    
+
     // Process each level section
     levelSections.forEach(section => {
         const levelData = {
@@ -3593,7 +3597,7 @@ function parseLevelerCard(card) {
             pt: '',
             abilities: []
         };
-        
+
         // Look for P/T in the content (usually looks like "2/3")
         const ptMatch = section.content.find(line => /^\d+\/\d+$/.test(line.trim()));
         if (ptMatch) {
@@ -3603,13 +3607,13 @@ function parseLevelerCard(card) {
         } else {
             levelData.abilities = section.content;
         }
-        
+
         // Join abilities into a single text block
         levelData.rulesText = levelData.abilities.join('\n');
-        
+
         parsedData.levels.push(levelData);
     });
-    
+
     return parsedData;
 }
 
@@ -3620,24 +3624,24 @@ function parsePrototypeLayout(card) {
     }
 
     const oracleText = card.oracle_text;
-    
+
     // Match the entire prototype line: "Prototype {1}{U}{U} — 2/1 (reminder text)"
     const prototypeMatch = oracleText.match(/^Prototype (.+?) — (\d+)\/(\d+) \((.+?)\)/);
-    
+
     if (!prototypeMatch) {
         console.error('Could not parse prototype information');
         return null;
     }
-    
+
     const prototypeCost = prototypeMatch[1];
     const prototypePower = prototypeMatch[2];
     const prototypeToughness = prototypeMatch[3];
     const prototypeReminder = prototypeMatch[4];
-    
+
     // Split by newlines and remove the first line (which contains the prototype)
     const lines = oracleText.split('\n');
     const mainRules = lines.slice(1).join('\n').trim();
-    
+
     return {
         layout: 'prototype',
         name: card.name || '',
@@ -3660,22 +3664,22 @@ function parseMutateLayout(card) {
     }
 
     const oracleText = card.oracle_text;
-    
+
     // Match the mutate line: "Mutate {3}{B} (reminder text)"
     const mutateMatch = oracleText.match(/^Mutate (.+?) \((.+?)\)/);
-    
+
     if (!mutateMatch) {
         console.error('Could not parse mutate information');
         return null;
     }
-    
+
     const mutateCost = mutateMatch[1];
     const mutateReminder = mutateMatch[2];
-    
+
     // Split by newlines and remove the first line (which contains the mutate)
     const lines = oracleText.split('\n');
     const mainRules = lines.slice(1).join('\n').trim();
-    
+
     return {
         layout: 'mutate',
         name: card.name || '',
@@ -3715,23 +3719,23 @@ function parseRollAbilities(text) {
 
     let modifiedText = text;
     const lines = text.split('\n');
-    
+
     // Skip the first line ("Roll a d20.")
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
-        
+
         // Match patterns like "1—9 | ability" or "20 | ability"
         const rollMatch = line.match(/^(\d+(?:—\d+)?)\s*\|\s*(.+)$/);
         if (rollMatch) {
             const range = rollMatch[1];
             const ability = rollMatch[2];
-            
+
             // Replace the line with the roll tag format
             const newLine = `{roll${range}} ${ability}`;
             modifiedText = modifiedText.replace(line, newLine);
         }
     }
-    
+
     return modifiedText;
 }
 
@@ -3742,17 +3746,17 @@ function parseStationCard(oracleText) {
 
     // Split the oracle text by STATION markers to get the pre-station text
     const parts = oracleText.split(/STATION \d+\+/);
-    
+
     // The first part is the pre-station text (before any STATION abilities)
     let preStationText = parts[0].trim();
-    
+
     // Format station reminder text with italics
     preStationText = preStationText.replace(/Station (\([^)]+\))/g, 'Station {i}$1{/i}');
-    
+
     // Updated regex to match new scryfall format: "10+ | ability text"
     const stationRegex = /(\d+\+)\s*\|\s*([^\n]+)/g;
     const stationAbilities = [];
-    
+
     let match;
     while ((match = stationRegex.exec(oracleText)) !== null) {
         stationAbilities.push({
@@ -3793,12 +3797,12 @@ function changeCardIndex() {
 				savedDescriptiveTexts[field] = card.text[field].text;
 			}
 		});
-	
+
 		// Clear all text fields
 		Object.keys(card.text).forEach(key => {
 			card.text[key].text = '';
 		});
-		
+
 		// Restore descriptive texts
 		Object.keys(savedDescriptiveTexts).forEach(field => {
 			if (card.text[field]) {
@@ -3821,7 +3825,7 @@ function changeCardIndex() {
 	if (card.text && card.text.reminder && (card.version === 'fuse' || card.version === 'room')) {
 		card.text.reminder.text = importedReminderText || savedFuseReminderText;
 	}
-		
+
 	//text
 	var langFontCode = "";
 	if (cardToImport.lang == "ph") {langFontCode = "{fontphyrexian}"}
@@ -3834,17 +3838,17 @@ function changeCardIndex() {
 			console.error('Failed to parse Multi Faced card data');
 			return;
 		}
-	
+
 		// Add artist info
 		if (cardToImport.artist) {
 			artistEdited(cardToImport.artist);
 		}
-	
-		// Handle art loading 
+
+		// Handle art loading
 		if (cardToImport.image_uris?.art_crop) {
 			uploadArt(cardToImport.image_uris.art_crop, 'autoFit');
 		}
-	
+
 		// Handle set symbol
 		if (!document.querySelector('#lockSetSymbolCode').checked) {
 			document.querySelector('#set-symbol-code').value = cardToImport.set;
@@ -3853,19 +3857,19 @@ function changeCardIndex() {
 			fetchSetSymbol();
 			}
 		}
-	
+
 		// Multi Faced card handling
 		// Update text fields based on card version
 		//Front Face (standard handling for all multi-faced cards)
 		if (card.text?.title && card.text?.mana) {
 			card.text.title.text = langFontCode + flipData.front.name;
-			card.text.type.text = langFontCode + flipData.front.type; 
+			card.text.type.text = langFontCode + flipData.front.type;
 			card.text.rules.text = langFontCode + flipData.front.rules;
 			if (flipData.front.flavor) {
 				card.text.rules.text += '{flavor}' + curlyQuotes(flipData.front.flavor.replace('\n', '{lns}'));
 			}
 			card.text.mana.text = flipData.front.mana || '';
-			
+
 			// Handle PT vs Defense based on card version
 			if (card.version === 'battle') {
 				// For battles, only the defense field is unique
@@ -3901,7 +3905,7 @@ function changeCardIndex() {
 				card.text.pt2.text = flipData.back.pt || '';
 			}
 		}
-		
+
 		// Handle pt2 for battle and transform front faces (cards without title2/mana2)
 		if ((card.version === 'battle' || card.version.includes('transform') || card.version.includes('Transform')) && card.text?.pt2) {
 			card.text.pt2.text = flipData.back.pt || '';
@@ -3910,14 +3914,14 @@ function changeCardIndex() {
 		if ((card.version.includes('transform') || card.version.includes('Transform')) && card.text?.reminder && flipData.back.pt) {
 			card.text.reminder.text = flipData.back.pt;
 		}
-	
+
 		textEdited();
 	}
 
 	// Handle Unique Layouts (Leveler, Prototype, Mutate, and Vanguard)
 	else if (['leveler', 'prototype', 'mutate', 'vanguard'].includes(cardToImport.layout) && ['leveler', 'prototype', 'mutate', 'vanguard'].includes(card.version)) {
 		let uniqueData;
-		
+
 		if (cardToImport.layout === 'leveler') {
 			uniqueData = parseLevelerCard(cardToImport);
 		} else if (cardToImport.layout === 'prototype') {
@@ -3933,7 +3937,7 @@ function changeCardIndex() {
 			artistEdited(cardToImport.artist);
 		}
 
-		// Handle art loading 
+		// Handle art loading
 		if (cardToImport.image_uris?.art_crop) {
 			uploadArt(cardToImport.image_uris.art_crop, 'autoFit');
 		}
@@ -3952,15 +3956,15 @@ function changeCardIndex() {
 			card.text.title.text = langFontCode + uniqueData.name;
 			card.text.type.text = langFontCode + uniqueData.type;
 			card.text.mana.text = uniqueData.mana;
-			
+
 			// Base P/T
 			if (card.text.pt) {
 				card.text.pt.text = uniqueData.basePT;
 			}
-			
+
 			if (uniqueData.layout === 'leveler') {
 				card.text.levelup.text = langFontCode + uniqueData.levelUpText;
-				
+
 				// Level 1-2 data
 				if (uniqueData.levels[0]) {
 					const level1Data = uniqueData.levels[0];
@@ -3974,7 +3978,7 @@ function changeCardIndex() {
 						card.text.pt2.text = level1Data.pt;
 					}
 				}
-				
+
 				// Level 3+ data
 				if (uniqueData.levels[1]) {
 					const level2Data = uniqueData.levels[1];
@@ -4035,13 +4039,13 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 			if (card.text[field]) card.text[field].text = '';
 		});
 	}
-	
+
 	// Clear station badge values immediately
 	if (card.station?.badgeValues) {
 		card.station.badgeValues[1] = '';
 		card.station.badgeValues[2] = '';
 	}
-	
+
 	const stationData = parseStationCard(cardToImport.oracle_text);
 	const name = (cardToImport.printed_name || cardToImport.name || '').replace(/^A-/, '{alchemy}');
 
@@ -4052,24 +4056,24 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 		['mana', cardToImport.mana_cost || ''],
 		['pt', cardToImport.power && cardToImport.toughness ? `${cardToImport.power}/${cardToImport.toughness}` : '']
 	];
-	
+
 	basicFields.forEach(([field, value]) => {
 		if (card.text?.[field]) card.text[field].text = langFontCode + value;
 	});
-	
+
 	// Station ability placement logic
 	if (stationData) {
 		// Better regex to separate pre-text from Station reminder text
 		let preText = '';
 		let reminderText = '';
-		
+
 		if (stationData.preStationText) {
 			// Look for Station reminder text (either already italicized or not)
 			const stationReminderMatch = stationData.preStationText.match(/(.*?)(Station \{i\}\([^)]+\)\{\/i\}|Station \([^)]+\))/s);
-			
+
 			if (stationReminderMatch) {
 				preText = stationReminderMatch[1].trim();
-				
+
 				// Format the reminder text with italics if not already done
 				if (stationReminderMatch[2].includes('{i}')) {
 					reminderText = stationReminderMatch[2];
@@ -4081,12 +4085,12 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 				preText = stationData.preStationText.trim();
 			}
 		}
-		
+
 		const numAbilities = stationData.stationAbilities.length;
-		
+
 		// AUTO-CHECK DISABLE FIRST SQUARE FOR SINGLE ABILITIES
 		const shouldDisableFirstSquare = numAbilities === 1;
-		
+
 		// Define placement scenarios as configuration
 		const scenarios = {
 			// [hasPreText, numAbilities]: [ability0, ability1, ability2, badgeSlots]
@@ -4095,18 +4099,18 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 			[false + ',' + 2]: [reminderText, stationData.stationAbilities[0]?.text, stationData.stationAbilities[1]?.text, [stationData.stationAbilities[0]?.number, stationData.stationAbilities[1]?.number]],
 			[true + ',' + 2]: [preText + (reminderText ? '\n' + reminderText : ''), stationData.stationAbilities[0]?.text, stationData.stationAbilities[1]?.text, [stationData.stationAbilities[0]?.number, stationData.stationAbilities[1]?.number]]
 		};
-		
+
 		const scenario = scenarios[Boolean(preText) + ',' + numAbilities];
 		if (scenario) {
 			const [ability0, ability1, ability2, badges] = scenario;
-			
+
 			// Set abilities
 			[ability0, ability1, ability2].forEach((text, i) => {
 				if (text && card.text[`ability${i}`]) {
 					card.text[`ability${i}`].text = langFontCode + text;
 				}
 			});
-			
+
 			// Set disable first square checkbox and station setting
 			setTimeout(() => {
 				const disableCheckbox = document.querySelector('#station-disable-first-ability');
@@ -4116,13 +4120,13 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 				if (card.station) {
 					card.station.disableFirstAbility = shouldDisableFirstSquare;
 				}
-				
+
 				// SET STATION-SPECIFIC UI VALUES FOR SINGLE ABILITY IMPORTS
 				if (shouldDisableFirstSquare && !Boolean(preText) && card.station?.importSettings?.singleAbility) {
 					// Get version-specific settings or fall back to default
 					const versionOverrides = card.station.importSettings.versionOverrides || {};
 					const versionSettings = versionOverrides[card.version] || card.station.importSettings.singleAbility;
-					
+
 					// Set Y offset
 					const yOffsetInput = document.querySelector('#station-square-y');
 					if (yOffsetInput) {
@@ -4131,7 +4135,7 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 							card.station.squares[1].y = versionSettings.yOffset + 76;
 						}
 					}
-					
+
 					// Set first square height
 					const height1Input = document.querySelector('#station-square-height-1');
 					if (height1Input) {
@@ -4141,14 +4145,14 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 						}
 					}
 				}
-		
-				
+
+
 				// Clear DOM inputs first
 				['#station-badge-value-1', '#station-badge-value-2'].forEach(selector => {
 					const input = document.querySelector(selector);
 					if (input) input.value = '';
 				});
-				
+
 				// Set new badge values
 				badges.forEach((badge, i) => {
 					if (badge) {
@@ -4157,7 +4161,7 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 						if (card.station?.badgeValues) card.station.badgeValues[i + 1] = badge;
 					}
 				});
-				
+
 				// Force station redraw after all values are set
 				setTimeout(() => {
 					if (typeof stationEdited === 'function') {
@@ -4167,7 +4171,7 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 			}, 100);
 		}
 	}
-	
+
 	textEdited();
 }
 
@@ -4198,8 +4202,8 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 	var italicExemptions = ['Boast', 'Cycling', 'Visit', 'Prize', 'I', 'II', 'III', 'IV', 'I, II', 'II, III', 'III, IV', 'I, II, III', 'II, III, IV', 'I, II, III, IV', '• Khans', '• Dragons', '• Mirran', '• Phyrexian', 'Prototype', 'Companion', 'To solve', 'Solved'];
 	var italicExemptions = ['Boast', 'Cycling', 'Visit', 'Prize', 'I', 'II', 'III', 'IV', 'I, II', 'II, III', 'III, IV', 'I, II, III', 'II, III, IV', 'I, II, III, IV', '• Khans', '• Dragons', '• Mirran', '• Phyrexian', 'Prototype', 'Companion', 'To solve', 'Solved'];
 	if (cardToImport.oracle_text) {
-		const hasRoll = cardToImport.oracle_text.toLowerCase().includes('roll a d20');		
-		const hasNumberedAbilities = /\d+(?:—\d+)?\s*\|\s*.+/.test(cardToImport.oracle_text);		
+		const hasRoll = cardToImport.oracle_text.toLowerCase().includes('roll a d20');
+		const hasNumberedAbilities = /\d+(?:—\d+)?\s*\|\s*.+/.test(cardToImport.oracle_text);
 		const rollText = parseRollAbilities(cardToImport.oracle_text);
 		if (rollText) {
 			// Use the modified text with roll tags for further processing
@@ -4215,9 +4219,9 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 			});
 		}
 		// Handle loyalty ability brackets - separate from roll handling, applies to ALL cards
-		const isCleaveSpell = rulesText.toLowerCase().includes('cleave') || 
+		const isCleaveSpell = rulesText.toLowerCase().includes('cleave') ||
 							 (cardToImport.keywords && cardToImport.keywords.includes('Cleave'));
-		
+
 		if (!isCleaveSpell) {
 		// Replace loyalty ability brackets [+1], [-2], etc. with curly brackets
 		// Also convert em dash (−) to regular hyphen (-)
@@ -4457,12 +4461,9 @@ else if (cardToImport.oracle_text && cardToImport.oracle_text.includes('Station'
 		fetchSetSymbol();
 	}
 }
-function loadAvailableCards(cardKeys = JSON.parse(localStorage.getItem('cardKeys'))) {
-	if (!cardKeys) {
-		cardKeys = [];
-		cardKeys.sort();
-		localStorage.setItem('cardKeys', JSON.stringify(cardKeys));
-	}
+async function loadAvailableCards() {
+	const res = await fetch('/api/cards');
+	const cardKeys = res.ok ? await res.json() : [];
 	document.querySelector('#load-card-options').innerHTML = '<option selected="selected" disabled>None selected</option>';
 	cardKeys.forEach(item => {
 		var cardKeyOption = document.createElement('option');
@@ -4474,8 +4475,9 @@ function importChanged() {
 	var unique = document.querySelector('#importAllPrints').checked ? 'prints' : '';
 	fetchScryfallData(document.querySelector("#import-name").value, importCard, unique);
 }
-function saveCard(saveFromFile) {
-	var cardKeys = JSON.parse(localStorage.getItem('cardKeys')) || [];
+async function saveCard(saveFromFile) {
+	const keysRes = await fetch('/api/cards');
+	var cardKeys = keysRes.ok ? await keysRes.json() : [];
 	var cardKey, cardToSave;
 	if (saveFromFile) {
 		cardKey = saveFromFile.key;
@@ -4506,24 +4508,24 @@ function saveCard(saveFromFile) {
 			frame.masks.forEach(mask => delete mask.image);
 		});
 	}
-	try {
-		localStorage.setItem(cardKey, JSON.stringify(cardToSave));
-		if (!cardKeys.includes(cardKey)) {
-			cardKeys.push(cardKey);
-			cardKeys.sort();
-			localStorage.setItem('cardKeys', JSON.stringify(cardKeys));
-			loadAvailableCards(cardKeys);
-		}
-	} catch (error) {
-		notify('You have exceeded your 5MB of local storage, and your card has failed to save. If you would like to continue saving cards, please download all saved cards, then delete all saved cards to free up space.<br><br>Local storage is most often exceeded by uploading large images directly from your computer. If possible/convenient, using a URL avoids the need to save these large images.<br><br>Apologies for the inconvenience.');
+	const saveRes = await fetch('/api/cards/' + encodeURIComponent(cardKey), {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(cardToSave)
+	});
+	if (!saveRes.ok) {
+		notify('Error saving card: ' + saveRes.statusText);
+		return null;
 	}
+	loadAvailableCards();
 }
 async function loadCard(selectedCardKey) {
 	//clear the draggable frames
 	document.querySelector('#frame-list').innerHTML = null;
 	//clear the existing card, then replace it with the new JSON
 	card = {};
-	card = JSON.parse(localStorage.getItem(selectedCardKey));
+	const cardRes = await fetch('/api/cards/' + encodeURIComponent(selectedCardKey));
+	card = cardRes.ok ? await cardRes.json() : null;
 	//if the card was loaded properly...
 	if (card) {
 		//load values from card into html inputs
@@ -4586,32 +4588,34 @@ async function loadCard(selectedCardKey) {
 		notify(selectedCardKey + ' failed to load.', 5)
 	}
 }
-function deleteCard() {
+async function deleteCard() {
 	var keyToDelete = document.querySelector('#load-card-options').value;
 	if (keyToDelete) {
-		var cardKeys = JSON.parse(localStorage.getItem('cardKeys'));
-		cardKeys.splice(cardKeys.indexOf(keyToDelete), 1);
-		cardKeys.sort();
-		localStorage.setItem('cardKeys', JSON.stringify(cardKeys));
-		localStorage.removeItem(keyToDelete);
-		loadAvailableCards(cardKeys);
+		const res = await fetch('/api/cards/' + encodeURIComponent(keyToDelete), { method: 'DELETE' });
+		if (!res.ok) {
+			notify('Error deleting card: ' + res.statusText, 5);
+			return;
+		}
+		loadAvailableCards();
 	}
 }
-function deleteSavedCards() {
+async function deleteSavedCards() {
 	if (confirm('WARNING:\n\nALL of your saved cards will be deleted! If you would like to save these cards, please make sure you have downloaded them first. There is no way to undo this.\n\n(Press "OK" to delete your cards)')) {
-		var cardKeys = JSON.parse(localStorage.getItem('cardKeys'));
-		cardKeys.forEach(key => localStorage.removeItem(key));
-		localStorage.setItem('cardKeys', JSON.stringify([]));
-		loadAvailableCards([]);
+		await fetch('/api/cards', { method: 'DELETE' });
+		loadAvailableCards();
 	}
 }
 async function downloadSavedCards() {
-	var cardKeys = JSON.parse(localStorage.getItem('cardKeys'));
-	if (cardKeys) {
+	const keysRes = await fetch('/api/cards');
+	const cardKeys = keysRes.ok ? await keysRes.json() : [];
+	if (cardKeys.length > 0) {
 		var allSavedCards = [];
-		cardKeys.forEach(item => {
-			allSavedCards.push({key:item, data:JSON.parse(localStorage.getItem(item))});
-		});
+		for (const item of cardKeys) {
+			const cardRes = await fetch('/api/cards/' + encodeURIComponent(item));
+			if (cardRes.ok) {
+				allSavedCards.push({key: item, data: await cardRes.json()});
+			}
+		}
 		var download = document.createElement('a');
 		download.href = URL.createObjectURL(new Blob([JSON.stringify(allSavedCards)], {type:'text'}));
 		download.download = 'saved-cards.cardconjurer';
@@ -4622,8 +4626,11 @@ async function downloadSavedCards() {
 }
 function uploadSavedCards(event) {
 	var reader = new FileReader();
-	reader.onload = function () {
-		JSON.parse(reader.result).forEach(item => saveCard(item));
+	reader.onload = async function () {
+		const items = JSON.parse(reader.result);
+		for (const item of items) {
+			await saveCard(item);
+		}
 	}
 	reader.readAsText(event.target.files[0]);
 }

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Conjurer – Migrate to DB</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    h1 { color: #c8a84b; margin-bottom: 4px; }
+    p.sub { color: #888; margin-top: 0; margin-bottom: 28px; }
+    .card-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      background: #2a2a2a;
+    }
+    .status { font-size: 1.2em; width: 1.4em; text-align: center; }
+    .name   { flex: 1; }
+    .msg    { color: #888; font-size: 0.85em; }
+    #summary {
+      margin-top: 28px;
+      padding: 14px 18px;
+      border-radius: 6px;
+      background: #2a2a2a;
+      display: none;
+    }
+    #summary.ok  { border-left: 4px solid #4caf50; }
+    #summary.err { border-left: 4px solid #f44336; }
+  </style>
+</head>
+<body>
+  <h1>localStorage → SQLite migration</h1>
+  <p class="sub">This page reads every card saved in your browser's localStorage and uploads it to the database. It runs automatically on load.</p>
+  <div id="list"></div>
+  <div id="summary"></div>
+
+  <script>
+    (async () => {
+      const list = document.getElementById('list')
+      const summary = document.getElementById('summary')
+
+      // ── 1. Read the card key list from localStorage ───────────────────────
+      let keyList = []
+      try {
+        const raw = localStorage.getItem('cardKeys')
+        if (raw) keyList = JSON.parse(raw)
+      } catch (e) { /* ignore */ }
+
+      if (keyList.length === 0) {
+        summary.style.display = 'block'
+        summary.className = 'ok'
+        summary.textContent = '✓ No cards found in localStorage – nothing to migrate.'
+        return
+      }
+
+      // ── 2. Migrate each card ──────────────────────────────────────────────
+      let ok = 0, skipped = 0, failed = 0
+
+      for (const name of keyList) {
+        const row = document.createElement('div')
+        row.className = 'card-row'
+        row.innerHTML = `<span class="status">⏳</span><span class="name">${escHtml(name)}</span><span class="msg">uploading…</span>`
+        list.appendChild(row)
+
+        const statusEl = row.querySelector('.status')
+        const msgEl    = row.querySelector('.msg')
+
+        // Read raw JSON string from localStorage (keep it as-is for the POST body)
+        const raw = localStorage.getItem(name)
+        if (!raw) {
+          statusEl.textContent = '⚠️'
+          msgEl.textContent = 'not found in localStorage – skipped'
+          skipped++
+          continue
+        }
+
+        try {
+          const res = await fetch('/api/cards/' + encodeURIComponent(name), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: raw          // raw is already a valid JSON string
+          })
+
+          if (res.ok) {
+            statusEl.textContent = '✅'
+            msgEl.textContent = 'saved'
+            ok++
+          } else {
+            const text = await res.text()
+            statusEl.textContent = '❌'
+            msgEl.textContent = `server error ${res.status}: ${text}`
+            failed++
+          }
+        } catch (e) {
+          statusEl.textContent = '❌'
+          msgEl.textContent = `network error: ${e.message}`
+          failed++
+        }
+      }
+
+      // ── 3. Summary ────────────────────────────────────────────────────────
+      summary.style.display = 'block'
+      summary.className = failed > 0 ? 'err' : 'ok'
+      summary.innerHTML =
+        `<strong>Done.</strong> ${ok} migrated, ${skipped} skipped, ${failed} failed` +
+        (failed === 0 && skipped === 0
+          ? '<br><br>You can safely clear your localStorage now (DevTools → Application → Local Storage → Clear All).'
+          : '')
+    })()
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+  </script>
+</body>
+</html>
+

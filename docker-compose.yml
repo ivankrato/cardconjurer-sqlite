@@ -6,3 +6,12 @@ services:
     volumes:
       - ./:/usr/share/nginx/html/:ro
       - ./docker/app.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - cardserver
+
+  cardserver:
+    build: ./server
+    environment:
+      - DB_PATH=/app/data/cards.db
+    volumes:
+      - ./data/db:/app/data
