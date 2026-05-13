@@ -192,7 +192,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #111; color: 
   display: flex; align-items: baseline; gap: .6rem; opacity: .9;
 }
 .type-heading .count { font-size: .85rem; font-weight: 400; opacity: .65; }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.25rem; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
 .card-item { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .card-item a { display: block; }
 .card-item img {
