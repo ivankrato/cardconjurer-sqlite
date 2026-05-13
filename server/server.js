@@ -88,6 +88,8 @@ const publicApp = express()
 
 publicApp.use('/card-images', express.static(IMAGES_DIR))
 
+publicApp.get('/', (req, res) => res.redirect(301, '/cards'))
+
 publicApp.get('/cards', (req, res) => {
   const rows = db.prepare('SELECT name, data, image_file FROM cards ORDER BY name ASC').all()
 
