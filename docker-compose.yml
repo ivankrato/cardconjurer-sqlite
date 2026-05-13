@@ -15,6 +15,7 @@ services:
     environment:
       - DB_PATH=/app/data/cards.db
       - IMAGES_DIR=/app/card_images
+      - API_PORT=3001
     volumes:
       - ./data/db:/app/data
       - ./data/card_images:/app/card_images

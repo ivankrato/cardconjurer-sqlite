@@ -228,8 +228,10 @@ Type=simple
 User=cardconjurer
 WorkingDirectory=/opt/cardconjurer/server
 Environment=PORT=3000
+Environment=API_PORT=3001
 Environment=DB_PATH=/opt/cardconjurer/data/db/cards.db
 Environment=IMAGES_DIR=/opt/cardconjurer/data/card_images
+Environment=GALLERY_HEADER=/opt/cardconjurer/gallery-header.html
 ExecStart=/usr/bin/node /opt/cardconjurer/server/server.js
 Restart=on-failure
 RestartSec=5
@@ -251,6 +253,7 @@ server {
     root /opt/cardconjurer;
     index index.html;
     charset utf-8;
+    client_max_body_size 50m;
 
     location ~* \.(html?|json|xml|manifest|appcache)$ {
         expires -1;
@@ -264,6 +267,13 @@ server {
     }
 
     location /api/ {
+        proxy_pass         http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header   Host \$host;
+        proxy_set_header   X-Real-IP \$remote_addr;
+    }
+
+    location = /cards {
         proxy_pass         http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header   Host \$host;
