@@ -4507,6 +4507,10 @@ async function saveCard(saveFromFile) {
 			delete frame.image;
 			frame.masks.forEach(mask => delete mask.image);
 		});
+		// Attach the current rendered card image so the server can persist it
+		try {
+			cardToSave._imageData = cardCanvas.toDataURL('image/png').split(',')[1];
+		} catch (_) {}
 	}
 	const saveRes = await fetch('/api/cards/' + encodeURIComponent(cardKey), {
 		method: 'POST',

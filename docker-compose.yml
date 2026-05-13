@@ -6,6 +6,7 @@ services:
     volumes:
       - ./:/usr/share/nginx/html/:ro
       - ./docker/app.conf:/etc/nginx/nginx.conf:ro
+      - ./data/card_images:/usr/share/nginx/html/card-images:ro
     depends_on:
       - cardserver
 
@@ -13,5 +14,7 @@ services:
     build: ./server
     environment:
       - DB_PATH=/app/data/cards.db
+      - IMAGES_DIR=/app/card_images
     volumes:
       - ./data/db:/app/data
+      - ./data/card_images:/app/card_images
