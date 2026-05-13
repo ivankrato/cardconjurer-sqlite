@@ -33,11 +33,18 @@ function escapeHtml(str) {
 
 function getColors(manaCost) {
   const c = new Set()
-  for (const sym of (manaCost.match(/\{[^}]+\}/g) || [])) {
-    for (const p of sym.replace(/[{}]/g,'').split('/')) {
-      if (p==='W') c.add('W'); if (p==='U') c.add('U'); if (p==='B') c.add('B')
-      if (p==='R') c.add('R'); if (p==='G') c.add('G')
+  const symbols = manaCost.match(/\{[^}]+\}/g) || []
+  if (symbols.length > 0) {
+    // Braced format: {W}{B}, {W/U}, {2/W}, etc.
+    for (const sym of symbols) {
+      for (const p of sym.replace(/[{}]/g, '').split('/')) {
+        if (p === 'W') c.add('W'); if (p === 'U') c.add('U'); if (p === 'B') c.add('B')
+        if (p === 'R') c.add('R'); if (p === 'G') c.add('G')
+      }
     }
+  } else {
+    // Plain format: WB, 2WU, etc. – extract individual WUBRG letters
+    for (const p of manaCost.replace(/[^WUBRG]/g, '')) c.add(p)
   }
   return [...c]
 }
@@ -46,6 +53,27 @@ function colorGroup(colors) {
   if (colors.length > 1) return 'M'
   if (colors.length === 1) return colors[0]
   return 'C'
+}
+
+const TYPE_ORDER = ['Creature', 'Sorcery', 'Instant', 'Enchantment', 'Artifact', 'Battle', 'Land']
+const TYPE_LABEL = Object.fromEntries(TYPE_ORDER.map(t => [t, t]))
+TYPE_LABEL['Other'] = 'Other'
+
+function getTypeGroup(cardData) {
+  const typeText = cardData.text?.type?.text || ''
+  for (const t of TYPE_ORDER) {
+    if (typeText.includes(t)) return t
+  }
+  // Fallback: scan all text fields (some frames use non-standard field names)
+  if (cardData.text) {
+    for (const field of Object.values(cardData.text)) {
+      const txt = field?.text || ''
+      for (const t of TYPE_ORDER) {
+        if (txt.includes(t)) return t
+      }
+    }
+  }
+  return 'Other'
 }
 
 const GROUP_ORDER  = ['W',       'U',     'B',     'R',   'G',      'M',          'C']
@@ -67,7 +95,12 @@ publicApp.get('/cards', (req, res) => {
     let d = {}; try { d = JSON.parse(r.data) } catch (_) {}
     const manaCost = d.text?.mana?.text || ''
     const colors = getColors(manaCost)
-    return { name: r.name, image_file: r.image_file || null, group: colorGroup(colors) }
+    return {
+      name: r.name,
+      image_file: r.image_file || null,
+      group: colorGroup(colors),
+      typeGroup: getTypeGroup(d)
+    }
   })
 
   const buckets = {}
@@ -77,21 +110,40 @@ publicApp.get('/cards', (req, res) => {
   let headerHtml = ''
   try { headerHtml = fs.readFileSync(GALLERY_HEADER_PATH, 'utf8') } catch (_) {}
 
+  const ALL_TYPES = [...TYPE_ORDER, 'Other']
+
   const sectionsHtml = GROUP_ORDER.filter(g => buckets[g].length > 0).map(g => {
-    const cards = buckets[g]
-    const cardsHtml = cards.map(c => {
-      const imgSrc = c.image_file ? `/card-images/${encodeURIComponent(c.image_file)}` : ''
-      const visual = imgSrc
-        ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(c.name)}" loading="lazy">`
-        : `<div class="no-img">No image</div>`
-      const link = imgSrc ? `<a href="${escapeHtml(imgSrc)}" target="_blank">${visual}</a>` : visual
-      return `<figure class="card-item">${link}<figcaption>${escapeHtml(c.name)}</figcaption></figure>`
+    // Sort the colour bucket: by type order, then alphabetically by name
+    const colorCards = buckets[g].slice().sort((a, b) => {
+      const ta = ALL_TYPES.indexOf(a.typeGroup)
+      const tb = ALL_TYPES.indexOf(b.typeGroup)
+      if (ta !== tb) return ta - tb
+      return a.name.localeCompare(b.name)
+    })
+
+    // Build type sub-sections
+    const typeSubSections = ALL_TYPES.map(t => {
+      const cards = colorCards.filter(c => c.typeGroup === t)
+      if (cards.length === 0) return ''
+      const cardsHtml = cards.map(c => {
+        const imgSrc = c.image_file ? `/card-images/${encodeURIComponent(c.image_file)}` : ''
+        const visual = imgSrc
+          ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(c.name)}" loading="lazy">`
+          : `<div class="no-img">No image</div>`
+        const link = imgSrc ? `<a href="${escapeHtml(imgSrc)}" target="_blank">${visual}</a>` : visual
+        return `<figure class="card-item">${link}<figcaption>${escapeHtml(c.name)}</figcaption></figure>`
+      }).join('')
+      return `<div class="type-group">
+      <h3 class="type-heading">${escapeHtml(t)}<span class="count">${cards.length}</span></h3>
+      <div class="card-grid">${cardsHtml}</div>
+    </div>`
     }).join('')
+
     return `
   <section class="group" id="group-${g}"
            style="--bg:${GROUP_BG[g]};--fg:${GROUP_FG[g]};--accent:${GROUP_ACCENT[g]}">
-    <h2 class="group-heading">${GROUP_LABEL[g]}<span class="count">${cards.length}</span></h2>
-    <div class="card-grid">${cardsHtml}</div>
+    <h2 class="group-heading">${GROUP_LABEL[g]}<span class="count">${colorCards.length}</span></h2>
+    ${typeSubSections}
   </section>`
   }).join('\n')
 
@@ -132,7 +184,15 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #111; color: 
   border-bottom: 2px solid var(--accent); display: flex; align-items: baseline; gap: .75rem;
 }
 .group-heading .count { font-size: 1rem; font-weight: 400; opacity: .7; }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.25rem; }
+.type-group { margin-bottom: 1.75rem; }
+.type-group:last-child { margin-bottom: 0; }
+.type-heading {
+  font-size: 1.1rem; font-weight: 600; margin-bottom: .85rem;
+  padding-left: .5rem; border-left: 3px solid var(--accent);
+  display: flex; align-items: baseline; gap: .6rem; opacity: .9;
+}
+.type-heading .count { font-size: .85rem; font-weight: 400; opacity: .65; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.25rem; }
 .card-item { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .card-item a { display: block; }
 .card-item img {

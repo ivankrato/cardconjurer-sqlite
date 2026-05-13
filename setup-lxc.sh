@@ -280,7 +280,7 @@ server {
         proxy_set_header   X-Real-IP \$remote_addr;
     }
 
-    location /card-images/ {
+    location ^~ /card-images/ {
         alias /opt/cardconjurer/data/card_images/;
         expires 1y;
         access_log off;
