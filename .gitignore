@@ -36,6 +36,7 @@ error.log
 fly.toml
 
 cards.db
+data/card_images/
 
 # Gallery customisation – edit server/gallery-header.html locally, don't commit it
 server/gallery-header.html
